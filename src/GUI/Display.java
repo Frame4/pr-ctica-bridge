@@ -1,29 +1,30 @@
 package GUI;
 
-import controlDevices.Alexa;
-import controlDevices.Control;
-import controlDevices.Smartphone;
+import controlDevices.*;
+import devices.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemListener;
 import java.io.File;
 
-public class Device extends JFrame {
-    private JLabel imagenLabel;
-    private JComboBox<String> comboBox;
+public class Display extends JFrame {
+    private JLabel imagenLabel, volumeLabel;
+    private JComboBox<Control> controlComboBox;
+    private JComboBox<Device> deviceComboBox;
     private JButton volumeUpButton;
     private JButton volumeDownButton;
     private JButton uploadButton;
+    private Laptop laptop;
+    private SmartTV smartTV;
     private Alexa alexa;
-    private Smartphone smartphone;
+    private GoogleHome googleHome;
 
-    public Device() {
+    public Display() {
         // Configurar la ventana principal
         setTitle("Ejercicio bridge");
-        setSize(800, 600);
+        setSize(950, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -36,12 +37,19 @@ public class Device extends JFrame {
         imagenLabel = new JLabel();
         panel.add(imagenLabel, BorderLayout.CENTER);
 
-        // Crear el JComboBox en la parte inferior y agregar elementos
-        comboBox = new JComboBox<>();
-        alexa = new Alexa();
-        smartphone = new Smartphone();
-        comboBox.addItem(smartphone.getDeviceName());
-        comboBox.addItem(alexa.getDeviceName());
+        // Crear el JComboBox de dispositivos en la parte inferior y agregar elementos
+        deviceComboBox = new JComboBox<>();
+        laptop = new Laptop();
+        smartTV = new SmartTV();
+        deviceComboBox.addItem(laptop);
+        deviceComboBox.addItem(smartTV);
+
+        // Crear el JComboBox de control en la parte inferior y agregar elementos
+        controlComboBox = new JComboBox<>();
+        googleHome = new GoogleHome((Device) deviceComboBox.getSelectedItem());
+        alexa = new Alexa((Device) deviceComboBox.getSelectedItem());
+        controlComboBox.addItem(googleHome);
+        controlComboBox.addItem(alexa);
 
 
         // Crear los botones de "Volume Up", "Volume Down" y "Upload Picture"
@@ -49,34 +57,30 @@ public class Device extends JFrame {
         volumeDownButton = new JButton("Volume Down");
         uploadButton = new JButton("Upload Picture");
 
+        volumeLabel = new JLabel("Volume: ");
+
+
         JPanel buttonPanel = new JPanel();
-        buttonPanel.add(comboBox);
+        buttonPanel.add(deviceComboBox);
+        buttonPanel.add(controlComboBox);
         buttonPanel.add(volumeUpButton);
         buttonPanel.add(volumeDownButton);
         buttonPanel.add(uploadButton);
+        buttonPanel.add(volumeLabel);
         panel.add(buttonPanel, BorderLayout.SOUTH);
 
-        // Agregar ActionListener al JComboBox
-        comboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JComboBox<String> source = (JComboBox<String>) e.getSource();
-                String seleccion = (String) source.getSelectedItem();
-
-                // Realiza acciones basadas en la selección del JComboBox
-                if ("Smartphone".equals(seleccion)) {
-                    // Agregar tu lógica para "Smartphone" aquí
-                } else if ("Alexa".equals(seleccion)) {
-                    // Agregar tu lógica para "Alexa" aquí
-                }
-            }
-        });
 
         // Agregar ActionListener para el botón "Volume Up"
         volumeUpButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Agregar tu lógica aquí
+                if(controlComboBox.getSelectedItem() == googleHome) {
+                    googleHome.volumeUp();
+                    volumeLabel.setText("Volume: " + googleHome.getVolume());
+                }else {
+                    alexa.volumeUp();
+                    volumeLabel.setText("Volume: " + alexa.getVolume());
+                }
             }
         });
 
@@ -84,7 +88,13 @@ public class Device extends JFrame {
         volumeDownButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Agregar tu lógica aquí
+                if(controlComboBox.getSelectedItem()== googleHome) {
+                    googleHome.volumeDown();
+                    volumeLabel.setText("Volume: " + googleHome.getVolume());
+                }else {
+                    alexa.volumeDown();
+                    volumeLabel.setText("Volume: " + alexa.getVolume());
+                }
             }
         });
 
@@ -108,6 +118,12 @@ public class Device extends JFrame {
                     ImageIcon imagenEscaladaIcon = new ImageIcon(imagenEscalada);
 
                     imagenLabel.setIcon(imagenEscaladaIcon);
+
+                    if(controlComboBox.getSelectedItem()== googleHome) {
+                        googleHome.setImage(imagenEscaladaIcon);
+                    }else {
+                        alexa.setImage(imagenEscaladaIcon);
+                    }
                 }
             }
         });
